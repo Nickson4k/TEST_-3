@@ -24,11 +24,10 @@ body {
     padding: 20px;
 }
 .eblan {
-    
     margin-top: 1px;
     display: flex;
-    
-   
+    justify-content: center;
+    align-items: center;
 }
 
 .text{
