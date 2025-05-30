@@ -27,7 +27,8 @@ body {
     width: 55px;
     position: absolute;
     left: 50%;
-    top: 10px;
+   top: 10px;
+   padding-top: 40px;
     transform: translate(-50%, -50%);
 }
 .container {
@@ -41,6 +42,7 @@ body {
     box-shadow: var(--box-shadow);
     padding: 30px;
     margin-bottom: 20px;
+    margin-top: 40px;
 }
 
 .quiz-header {
