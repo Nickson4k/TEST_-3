@@ -34,6 +34,15 @@ function startQuiz() {
     showQuestion();
 }
 
+// Функція для перемішування масиву (алгоритм Фішера-Єйтса)
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
 function showQuestion() {
     const question = quizData[currentQuestion];
     questionElement.textContent = `${currentQuestion + 1}. ${question.q}`;
@@ -41,11 +50,26 @@ function showQuestion() {
     // Очищення попередніх опцій
     optionsContainer.innerHTML = '';
     
+    // Створюємо масив об'єктів з опціями та їх індексами
+    const optionsWithIndexes = question.options.map((option, index) => ({
+        text: option,
+        originalIndex: index
+    }));
+    
+    // Перемішуємо опції
+    const shuffledOptions = shuffleArray([...optionsWithIndexes]);
+    
+    // Знаходимо новий індекс правильної відповіді
+    const correctAnswerIndex = shuffledOptions.findIndex(option => option.originalIndex === question.answer);
+    
+    // Оновлюємо індекс правильної відповіді в поточному питанні
+    quizData[currentQuestion].answer = correctAnswerIndex;
+    
     // Додавання нових опцій
-    question.options.forEach((option, index) => {
+    shuffledOptions.forEach((option, index) => {
         const optionElement = document.createElement('div');
         optionElement.classList.add('option');
-        optionElement.textContent = option;
+        optionElement.textContent = option.text;
         optionElement.addEventListener('click', () => selectOption(index));
         optionsContainer.appendChild(optionElement);
     });
