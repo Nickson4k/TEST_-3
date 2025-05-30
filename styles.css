@@ -27,7 +27,7 @@ body {
     width: 55px;
     position: absolute;
     left: 50%;
-   top: 130px;
+    top: 160px;
     transform: translate(-50%, -50%);
 }
 .container {
