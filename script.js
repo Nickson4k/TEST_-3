@@ -16,8 +16,17 @@ const scoreElement = document.getElementById('score');
 const percentageElement = document.getElementById('percentage');
 const restartButton = document.getElementById('restart-btn');
 
+// Масив з можливими файлами даних
+const dataFiles = ['data.json', 'data_1.json', 'data_2.json'];
+
+// Функція для випадкового вибору файлу
+function getRandomDataFile() {
+    const randomIndex = Math.floor(Math.random() * dataFiles.length);
+    return dataFiles[randomIndex];
+}
+
 // Завантаження даних
-fetch('data.json')
+fetch(getRandomDataFile())
     .then(response => response.json())
     .then(data => {
         quizData = data.quiz_data;
