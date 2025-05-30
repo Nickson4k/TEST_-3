@@ -17,7 +17,11 @@ const percentageElement = document.getElementById('percentage');
 const restartButton = document.getElementById('restart-btn');
 
 // Масив з можливими файлами даних
-const dataFiles = ['data.json', 'data_1.json', 'data_2.json'];
+const dataFiles = [
+    './data.json',
+    './data_1.json',
+    './data_2.json'
+];
 
 // Функція для випадкового вибору файлу
 function getRandomDataFile() {
@@ -27,7 +31,12 @@ function getRandomDataFile() {
 
 // Завантаження даних
 fetch(getRandomDataFile())
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Помилка завантаження файлу');
+        }
+        return response.json();
+    })
     .then(data => {
         quizData = data.quiz_data;
         startQuiz();
