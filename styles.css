@@ -34,9 +34,14 @@ body {
 .text{
     margin-left: 45px;
 }
-.img{
+.img {
     width: 50px;
+    height: 50px;
     margin-left: 10px;
+    object-fit: contain;
+    max-width: 100%;
+    display: inline-block;
+    vertical-align: middle;
 }
 .container {
     width: 100%;
