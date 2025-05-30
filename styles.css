@@ -23,7 +23,13 @@ body {
     align-items: center;
     padding: 20px;
 }
-
+.eblan {
+    width: 55px;
+    position: absolute;
+    left: 50%;
+   top: 130px;
+    transform: translate(-50%, -50%);
+}
 .container {
     width: 100%;
     max-width: 800px;
