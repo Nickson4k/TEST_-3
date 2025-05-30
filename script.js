@@ -23,29 +23,34 @@ const dataFiles = [
     './data_2.json'
 ];
 
-// Функція для випадкового вибору файлу
-function getRandomDataFile() {
-    const randomIndex = Math.floor(Math.random() * dataFiles.length);
-    const randomParam = Math.random(); // Додаємо випадкове число
-    return `${dataFiles[randomIndex]}?v=${randomParam}`; // Додаємо параметр до URL
+// Функція для додавання timestamp до URL
+function addTimestamp(url) {
+    return `${url}?t=${Date.now()}`;
+}
+
+// Функція для завантаження всіх файлів
+async function loadAllData() {
+    try {
+        const responses = await Promise.all(
+            dataFiles.map(file => fetch(addTimestamp(file)))
+        );
+        
+        const data = await Promise.all(
+            responses.map(response => response.json())
+        );
+        
+        // Вибираємо випадковий файл з завантажених
+        const randomIndex = Math.floor(Math.random() * data.length);
+        quizData = data[randomIndex].quiz_data;
+        startQuiz();
+    } catch (error) {
+        console.error('Помилка завантаження даних:', error);
+        questionElement.textContent = 'Помилка завантаження тесту. Будь ласка, спробуйте пізніше.';
+    }
 }
 
 // Завантаження даних
-fetch(getRandomDataFile())
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Помилка завантаження файлу');
-        }
-        return response.json();
-    })
-    .then(data => {
-        quizData = data.quiz_data;
-        startQuiz();
-    })
-    .catch(error => {
-        console.error('Помилка завантаження даних:', error);
-        questionElement.textContent = 'Помилка завантаження тесту. Будь ласка, спробуйте пізніше.';
-    });
+loadAllData();
 
 function startQuiz() {
     currentQuestion = 0;
