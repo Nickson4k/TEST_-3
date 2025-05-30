@@ -26,7 +26,8 @@ const dataFiles = [
 // Функція для випадкового вибору файлу
 function getRandomDataFile() {
     const randomIndex = Math.floor(Math.random() * dataFiles.length);
-    return dataFiles[randomIndex];
+    const randomParam = Math.random(); // Додаємо випадкове число
+    return `${dataFiles[randomIndex]}?v=${randomParam}`; // Додаємо параметр до URL
 }
 
 // Завантаження даних
