@@ -22,6 +22,17 @@ const aiAnswerContainer = document.getElementById('ai-answer-container');
 const userAnswerInput = document.getElementById('user-answer');
 const aiFeedback = document.getElementById('ai-feedback');
 
+// Функціонал перемикання теми
+const themeSwitchBtn = document.getElementById('theme-switch-btn');
+const themeEmoji = themeSwitchBtn.querySelector('.theme-emoji');
+
+// Перевіряємо збережену тему
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme) {
+    document.body.setAttribute('data-theme', savedTheme);
+    updateThemeButton(savedTheme);
+}
+
 // Масив з можливими файлами даних
 const dataFiles = [
     './data.json',
@@ -173,6 +184,19 @@ function checkAnswer() {
     nextButton.textContent = currentQuestion === quizData.length - 1 ? 'Завершити' : 'Наступне питання';
 }
 
+// Функція для анімації друкування тексту
+async function typeText(element, text, speed = 10) {
+    element.textContent = '';
+    element.classList.add('typing-animation');
+    
+    for (let i = 0; i < text.length; i++) {
+        element.textContent += text[i];
+        await new Promise(resolve => setTimeout(resolve, speed));
+    }
+    
+    element.classList.remove('typing-animation');
+}
+
 async function checkAIAnswer() {
     const userAnswer = userAnswerInput.value.trim();
     if (!userAnswer) {
@@ -181,16 +205,19 @@ async function checkAIAnswer() {
     }
 
     nextButton.disabled = true;
+    aiFeedback.textContent = 'Думаю';
+    aiFeedback.classList.add('typing-animation');
 
     const question = quizData[currentQuestion];
     
-    // Завантажуємо промпт з файлу
-    const promptResponse = await fetch('prompt.json');
-    const promptData = await promptResponse.json();
-    const promptTemplate = promptData.prompt_template;
+    try {
+        // Завантажуємо промпт з файлу
+        const promptResponse = await fetch('prompt.json');
+        const promptData = await promptResponse.json();
+        const promptTemplate = promptData.prompt_template;
 
-    // Формуємо промпт
-    const prompt = `${promptTemplate.context}
+        // Формуємо промпт
+        const prompt = `${promptTemplate.context}
 
 Стиль відповіді:
 ${promptTemplate.style.tone}
@@ -223,9 +250,10 @@ ${promptTemplate.rating_format.correct.symbol} ${promptTemplate.rating_format.co
 ${promptTemplate.rating_format.partially_correct.symbol} ${promptTemplate.rating_format.partially_correct.description}
 ${promptTemplate.rating_format.incorrect.symbol} ${promptTemplate.rating_format.incorrect.description}
 
-${promptTemplate.explanation_requirement}`;
+${promptTemplate.explanation_requirement}
 
-    try {
+Важливо: Давай коротку відповідь, максимум 2 речення.`;
+
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -241,7 +269,9 @@ ${promptTemplate.explanation_requirement}`;
                 messages: [{
                     role: "user",
                     content: prompt
-                }]
+                }],
+                max_tokens: 100,
+                temperature: 0.7
             })
         });
 
@@ -252,20 +282,22 @@ ${promptTemplate.explanation_requirement}`;
         const data = await response.json();
         const feedback = data.choices[0].message.content;
         
-        aiFeedback.textContent = feedback;
+        await typeText(aiFeedback, feedback);
         nextButton.disabled = false;
         nextButton.textContent = currentQuestion === quizData.length - 1 ? 'Завершити' : 'Наступне питання';
     } catch (error) {
         console.error('Помилка при аналізі відповіді:', error);
         aiFeedback.textContent = 'Виникла помилка при аналізі відповіді. Спробуйте ще раз.';
         nextButton.disabled = false;
+    } finally {
+        aiFeedback.classList.remove('typing-animation');
     }
 }
 
 // Обробники подій
 modeSwitchBtn.addEventListener('click', () => {
     isAIMode = !isAIMode;
-    modeSwitchBtn.textContent = isAIMode ? 'Перемкнути на звичайний режим' : 'Перемкнути на режим ШІ';
+    modeSwitchBtn.textContent = isAIMode ? 'Перемкнути на звичайний режим' : 'XOXLO AI';
     startQuiz();
 });
 
@@ -306,4 +338,22 @@ restartButton.addEventListener('click', () => {
     resultContainer.style.display = 'none';
     quizContainer.style.display = 'block';
     startQuiz();
-}); 
+});
+
+// Обробник перемикання теми
+themeSwitchBtn.addEventListener('click', () => {
+    const currentTheme = document.body.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    
+    document.body.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    updateThemeButton(newTheme);
+});
+
+function updateThemeButton(theme) {
+    if (theme === 'dark') {
+        themeEmoji.textContent = '☀️';
+    } else {
+        themeEmoji.textContent = '🌙';
+    }
+} 
