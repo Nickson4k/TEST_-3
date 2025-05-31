@@ -3,6 +3,8 @@ let quizData = [];
 let currentQuestion = 0;
 let score = 0;
 let selectedOption = null;
+let isAIMode = false;
+const GROQ_API_KEY = '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';
 
 // DOM елементи
 const questionElement = document.getElementById('question');
@@ -15,6 +17,10 @@ const resultContainer = document.getElementById('result-container');
 const scoreElement = document.getElementById('score');
 const percentageElement = document.getElementById('percentage');
 const restartButton = document.getElementById('restart-btn');
+const modeSwitchBtn = document.getElementById('mode-switch-btn');
+const aiAnswerContainer = document.getElementById('ai-answer-container');
+const userAnswerInput = document.getElementById('user-answer');
+const aiFeedback = document.getElementById('ai-feedback');
 
 // Масив з можливими файлами даних
 const dataFiles = [
@@ -71,38 +77,48 @@ function showQuestion() {
     const question = quizData[currentQuestion];
     questionElement.textContent = `${currentQuestion + 1}. ${question.q}`;
     
-    // Очищення попередніх опцій
-    optionsContainer.innerHTML = '';
-    
-    // Створюємо масив об'єктів з опціями та їх індексами
-    const optionsWithIndexes = question.options.map((option, index) => ({
-        text: option,
-        originalIndex: index
-    }));
-    
-    // Перемішуємо опції
-    const shuffledOptions = shuffleArray([...optionsWithIndexes]);
-    
-    // Знаходимо новий індекс правильної відповіді
-    const correctAnswerIndex = shuffledOptions.findIndex(option => option.originalIndex === question.answer);
-    
-    // Оновлюємо індекс правильної відповіді в поточному питанні
-    quizData[currentQuestion].answer = correctAnswerIndex;
-    
-    // Додавання нових опцій
-    shuffledOptions.forEach((option, index) => {
-        const optionElement = document.createElement('div');
-        optionElement.classList.add('option');
-        optionElement.textContent = option.text;
-        optionElement.addEventListener('click', () => selectOption(index));
-        optionsContainer.appendChild(optionElement);
-    });
+    if (isAIMode) {
+        optionsContainer.style.display = 'none';
+        aiAnswerContainer.style.display = 'block';
+        userAnswerInput.value = '';
+        aiFeedback.textContent = '';
+        nextButton.disabled = false;
+    } else {
+        optionsContainer.style.display = 'block';
+        aiAnswerContainer.style.display = 'none';
+        
+        // Очищення попередніх опцій
+        optionsContainer.innerHTML = '';
+        
+        // Створюємо масив об'єктів з опціями та їх індексами
+        const optionsWithIndexes = question.options.map((option, index) => ({
+            text: option,
+            originalIndex: index
+        }));
+        
+        // Перемішуємо опції
+        const shuffledOptions = shuffleArray([...optionsWithIndexes]);
+        
+        // Знаходимо новий індекс правильної відповіді
+        const correctAnswerIndex = shuffledOptions.findIndex(option => option.originalIndex === question.answer);
+        
+        // Оновлюємо індекс правильної відповіді в поточному питанні
+        quizData[currentQuestion].answer = correctAnswerIndex;
+        
+        // Додавання нових опцій
+        shuffledOptions.forEach((option, index) => {
+            const optionElement = document.createElement('div');
+            optionElement.classList.add('option');
+            optionElement.textContent = option.text;
+            optionElement.addEventListener('click', () => selectOption(index));
+            optionsContainer.appendChild(optionElement);
+        });
+        
+        nextButton.disabled = true;
+    }
 
     // Оновлення прогресу
     updateProgress();
-    
-    // Скидання стану кнопки
-    nextButton.disabled = true;
     selectedOption = null;
 }
 
@@ -157,22 +173,121 @@ function checkAnswer() {
     nextButton.textContent = currentQuestion === quizData.length - 1 ? 'Завершити' : 'Наступне питання';
 }
 
-// Обробники подій
-nextButton.addEventListener('click', () => {
-    if (selectedOption === null) {
-        alert('Будь ласка, оберіть варіант відповіді!');
+async function checkAIAnswer() {
+    const userAnswer = userAnswerInput.value.trim();
+    if (!userAnswer) {
+        alert('Будь ласка, введіть вашу відповідь!');
         return;
     }
+
+    nextButton.disabled = true;
+
+    const question = quizData[currentQuestion];
     
-    if (nextButton.textContent === 'Відповісти') {
-        checkAnswer();
-    } else {
-        currentQuestion++;
-        if (currentQuestion < quizData.length) {
-            showQuestion();
-            nextButton.textContent = 'Відповісти';
+    // Завантажуємо промпт з файлу
+    const promptResponse = await fetch('prompt.json');
+    const promptData = await promptResponse.json();
+    const promptTemplate = promptData.prompt_template;
+
+    // Формуємо промпт
+    const prompt = `${promptTemplate.context}
+
+Питання: ${question.q}
+Правильна відповідь: ${question.options[question.answer]}
+Відповідь користувача: ${userAnswer}
+
+Важливо: 
+${promptTemplate.rules.map(rule => `- ${rule}`).join('\n')}
+
+Правильні відповіді для всіх питань:
+${promptTemplate.correct_answers.map(answer => `- ${answer}`).join('\n')}
+
+Альтернативні формулювання правильних відповідей:
+${promptTemplate.alternative_answers.map(answer => `- ${answer}`).join('\n')}
+
+Критерії оцінки:
+${promptTemplate.evaluation_criteria.map(criterion => `- ${criterion}`).join('\n')}
+
+Надай оцінку у форматі:
+${promptTemplate.rating_format.correct.symbol} ${promptTemplate.rating_format.correct.description}
+${promptTemplate.rating_format.partially_correct.symbol} ${promptTemplate.rating_format.partially_correct.description}
+${promptTemplate.rating_format.incorrect.symbol} ${promptTemplate.rating_format.incorrect.description}
+
+${promptTemplate.explanation_requirement}`;
+
+    try {
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${GROQ_API_KEY}`,
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'POST, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+            },
+            mode: 'cors',
+            body: JSON.stringify({
+                model: "meta-llama/llama-4-scout-17b-16e-instruct",
+                messages: [{
+                    role: "user",
+                    content: prompt
+                }]
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const feedback = data.choices[0].message.content;
+        
+        aiFeedback.textContent = feedback;
+        nextButton.disabled = false;
+        nextButton.textContent = currentQuestion === quizData.length - 1 ? 'Завершити' : 'Наступне питання';
+    } catch (error) {
+        console.error('Помилка при аналізі відповіді:', error);
+        aiFeedback.textContent = 'Виникла помилка при аналізі відповіді. Спробуйте ще раз.';
+        nextButton.disabled = false;
+    }
+}
+
+// Обробники подій
+modeSwitchBtn.addEventListener('click', () => {
+    isAIMode = !isAIMode;
+    modeSwitchBtn.textContent = isAIMode ? 'Перемкнути на звичайний режим' : 'Перемкнути на режим ШІ';
+    startQuiz();
+});
+
+nextButton.addEventListener('click', () => {
+    if (isAIMode) {
+        if (nextButton.textContent === 'Відповісти') {
+            checkAIAnswer();
         } else {
-            showResult();
+            currentQuestion++;
+            if (currentQuestion < quizData.length) {
+                showQuestion();
+                nextButton.textContent = 'Відповісти';
+            } else {
+                showResult();
+            }
+        }
+    } else {
+        if (selectedOption === null) {
+            alert('Будь ласка, оберіть варіант відповіді!');
+            return;
+        }
+        
+        if (nextButton.textContent === 'Відповісти') {
+            checkAnswer();
+        } else {
+            currentQuestion++;
+            if (currentQuestion < quizData.length) {
+                showQuestion();
+                nextButton.textContent = 'Відповісти';
+            } else {
+                showResult();
+            }
         }
     }
 });
