@@ -206,4 +206,53 @@ body {
         padding: 10px 20px;
         font-size: 14px;
     }
+
+    .img {
+        width: 40px;
+        height: 40px;
+        margin-left: 5px;
+    }
+}
+
+.ai-answer-container {
+    margin-top: 20px;
+    width: 100%;
+}
+
+#user-answer {
+    width: 100%;
+    min-height: 100px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    font-size: 16px;
+    resize: vertical;
+}
+
+.ai-feedback {
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 10px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+}
+
+.mode-switch {
+    text-align: center;
+    margin-top: 20px;
+}
+
+#mode-switch-btn {
+    background-color: #6c757d;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#mode-switch-btn:hover {
+    background-color: #5a6268;
 } 
