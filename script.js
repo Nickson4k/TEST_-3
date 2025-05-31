@@ -192,6 +192,16 @@ async function checkAIAnswer() {
     // Формуємо промпт
     const prompt = `${promptTemplate.context}
 
+Стиль відповіді:
+${promptTemplate.style.tone}
+${promptTemplate.style.language}
+
+Сленгові фрази для використання:
+Позитивні: ${promptTemplate.style.slang_phrases.positive.join(', ')}
+Негативні: ${promptTemplate.style.slang_phrases.negative.join(', ')}
+
+${promptTemplate.style.features.map(feature => `- ${feature}`).join('\n')}
+
 Питання: ${question.q}
 Правильна відповідь: ${question.options[question.answer]}
 Відповідь користувача: ${userAnswer}
