@@ -37,7 +37,8 @@ if (savedTheme) {
 const dataFiles = [
     './data.json',
     './data_1.json',
-    './data_2.json'
+    './data_2.json',
+    './data_1.1.json'
 ];
 
 // Функція для додавання timestamp до URL
@@ -72,6 +73,7 @@ loadAllData();
 function startQuiz() {
     currentQuestion = 0;
     score = 0;
+    console.log('Початок тесту. Рахунок скинуто до 0');
     showQuestion();
 }
 
@@ -155,8 +157,22 @@ function showResult() {
     resultContainer.style.display = 'block';
     
     const percentage = (score / quizData.length) * 100;
+    console.log('Фінальний рахунок:', score, 'з', quizData.length);
     scoreElement.textContent = `${score} з ${quizData.length}`;
     percentageElement.textContent = `Відсоток правильних відповідей: ${percentage.toFixed(1)}%`;
+    
+    // Додаємо інформацію про систему оцінювання
+    const scoringInfo = document.createElement('div');
+    scoringInfo.style.marginTop = '10px';
+    scoringInfo.style.fontSize = '14px';
+    scoringInfo.style.color = '#666';
+    scoringInfo.innerHTML = `
+        <p>Система оцінювання:</p>
+        <p>✅ Правильна відповідь = 1 бал</p>
+        <p>⚠️ Частково правильна відповідь = 1 бал</p>
+        <p>❌ Неправильна відповідь = 0 балів</p>
+    `;
+    resultContainer.appendChild(scoringInfo);
 }
 
 function checkAnswer() {
@@ -281,6 +297,17 @@ ${promptTemplate.explanation_requirement}
 
         const data = await response.json();
         const feedback = data.choices[0].message.content;
+        
+        // Перевіряємо рейтинг у відповіді
+        if (feedback.includes('✅')) {
+            score++;
+            console.log('Додано бал за правильну відповідь. Поточний рахунок:', score);
+        } else if (feedback.includes('⚠️')) {
+            score++;
+            console.log('Додано бал за частково правильну відповідь. Поточний рахунок:', score);
+        } else if (feedback.includes('❌')) {
+            console.log('Неправильна відповідь. Поточний рахунок:', score);
+        }
         
         await typeText(aiFeedback, feedback);
         nextButton.disabled = false;
