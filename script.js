@@ -4,7 +4,7 @@ let currentQuestion = 0;
 let score = 0;
 let selectedOption = null;
 let isAIMode = false;
-const GROQ_API_KEY = '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';
+const GROQ_API_KEY = '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';
 
 // DOM елементи
 const questionElement = document.getElementById('question');
@@ -35,10 +35,7 @@ if (savedTheme) {
 
 // Масив з можливими файлами даних
 const dataFiles = [
-    './data.json',
-    './data_1.json',
-    './data_2.json',
-    './data_1.1.json'
+    './data.json'   
 ];
 
 // Функція для додавання timestamp до URL
@@ -200,7 +197,7 @@ function checkAnswer() {
     nextButton.textContent = currentQuestion === quizData.length - 1 ? 'Завершити' : 'Наступне питання';
 }
 
-// Функція для анімації друкування тексту
+// Оновлюємо функцію typeText
 async function typeText(element, text, speed = 10) {
     element.textContent = '';
     element.classList.add('typing-animation');
@@ -221,7 +218,7 @@ async function checkAIAnswer() {
     }
 
     nextButton.disabled = true;
-    aiFeedback.textContent = 'Думаю';
+    aiFeedback.textContent = 'Xoxlo AI thinking...';
     aiFeedback.classList.add('typing-animation');
 
     const question = quizData[currentQuestion];
