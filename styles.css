@@ -36,13 +36,14 @@
 }
 
 body {
-    background-color: var(--background-color);
-    color: var(--text-color);
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
+  background: url(2.jpg) no-repeat center center fixed;
+  background-size: cover;
+  color: var(--text-color);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
 }
 .eblan {
     margin-top: 1px;
@@ -69,12 +70,13 @@ body {
 }
 
 .quiz-container {
-    background: var(--container-bg);
-    border-radius: var(--border-radius);
+   background-color: #0a0c0e7d;
+    border-radius:20px;
     box-shadow: var(--box-shadow);
     padding: 30px;
     margin-bottom: 20px;
-   
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .quiz-header {
